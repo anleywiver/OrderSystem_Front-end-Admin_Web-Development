@@ -49,7 +49,7 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:50'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -66,7 +66,34 @@ class RegisterController extends Controller
         return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'telpon' => $data['telpon'],
             'password' => Hash::make($data['password']),
+
         ]);
+        // send email verification
+        Mail::to($user->email)->send(new VerifyEmail($user));
+        return redirect('/home');
+    }
+
+
+    public function verify()
+    {
+        if (empty(request('token'))) {
+            // if token is not provided
+            return redirect()->route('signup.form');
+        }
+        // decrypt token as email
+        $decryptedEmail = Crypt::decrypt(request('token'));
+        // find user by email
+        $user = User::whereEmail($decryptedEmail)->first();
+        if ($user->status == 'activated') {
+            // user is already active, do something
+        }
+        // otherwise change user status to "activated"
+        $user->status = 'activated';
+        $user->save();
+        // autologin
+        Auth::loginUsingId($user->id);
+        return redirect('/home');
     }
 }
