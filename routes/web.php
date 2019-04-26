@@ -20,3 +20,5 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('verify', 'Auth/RegisterController@verify')->name('signup.verify');
+
+Route::resource('kategori-option-admin', 'KategorioptionadminController');
